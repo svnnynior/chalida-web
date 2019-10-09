@@ -1,10 +1,10 @@
-import React from "react"
+import React, { useContext } from "react"
 import { useStaticQuery, graphql } from "gatsby"
 import { LocaleContext } from "./LocaleWrapper"
 
 function useTranslations() {
   // Grab the locale (passed through context) from the Context Provider
-  const { locale } = React.useContext(LocaleContext)
+  const { locale } = useContext(LocaleContext)
   const { rawData } = useStaticQuery(query)
   // Simplify the response from GraphQL
   const simplified = rawData.edges.map((item: any) => {
@@ -35,6 +35,7 @@ const query = graphql`
             about
             header_title
             header_subtitle
+            details
           }
         }
       }

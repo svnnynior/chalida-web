@@ -12,11 +12,15 @@ import CollapseMenu from "./CollapseMenu"
 const NavBar = styled(animated.nav)`
   background-color: rgba(0, 0, 0, 0);
   color: rgba(255, 255, 255, 0.5);
-  padding: 20px;
+  padding: 0 2rem;
   padding-top: 10px;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+
+  @media ${device.laptopL} {
+    padding: 1rem 10rem;
+  }
 `
 
 const NavLinks = styled(animated.ul)`

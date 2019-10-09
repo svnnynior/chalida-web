@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
 
 import SEO from "../components/SEO"
 import useTranslations from "../components/useTranslation"
@@ -7,7 +7,14 @@ import styled, { keyframes } from "styled-components"
 import parallaxImage from "../images/header-background.jpg"
 import NavigationBar from "../components/NavigationBar"
 import { device } from "../utils/device"
+import Layout from "../components/Layout"
 
+import hair_image from "../images/hair.png"
+import eyebrow_image from "../images/eyebrow.png"
+
+import ServiceCard from "../components/ServiceCard"
+import useVisibilityTracking from "../components/useVisibilityTracking"
+import { useSpring } from "react-spring"
 interface ParallaxProps {
   imageUrl: string
 }
@@ -33,13 +40,16 @@ const ParallaxContainer = styled.div`
   background-color: black;
 
   @media ${device.laptop} {
-    height: 90vh;
+    height: 80vh;
   }
 `
 
 const HeaderText = styled.div`
   text-align: center;
-  margin-top: 15vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `
 const textClipKeyframes = keyframes`
   100% {
@@ -48,6 +58,7 @@ const textClipKeyframes = keyframes`
 `
 
 const HeaderTitle = styled.h1`
+  margin-top: -100px;
   color: white;
   font-size: 30px;
   background: linear-gradient(to right, #555, #fff, #555);
@@ -91,9 +102,76 @@ const HeaderSubtitle = styled.h4`
     font-size: 32px;
   }
 `
+
+const Section = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
+`
+
+const SectionTitle = styled.h3`
+  color: black;
+  font-size: 40px;
+  font-weight: 600;
+  margin-top: 0px;
+  margin-bottom: 20px;
+`
+
+const ServiceSectionContent = styled.div`
+  display: flex;
+  justify-content: center;
+`
+
+interface Service {
+  id: number
+  title: {
+    th: string
+    en: string
+  }
+  description: {
+    th: string
+    en: string
+  }
+  gotoUrl: string
+  image: string
+}
+const SERVICES: Service[] = [
+  {
+    id: 0,
+    title: {
+      th: "ทำผม",
+      en: "Hair",
+    },
+    description: {
+      th: "ตัดผม, สระผม, ทำสีผม",
+      en: "Cut, Shampoo, Dye, etc.",
+    },
+    gotoUrl: "/services",
+    image: hair_image,
+  },
+  {
+    id: 1,
+    title: {
+      th: "สัก 3 มิติ",
+      en: "Paint",
+    },
+    description: {
+      th: "สักคิ้ว, สักปาก",
+      en: "Eyebrow Paint, Lips Paint",
+    },
+    gotoUrl: "/services",
+    image: eyebrow_image,
+  },
+]
 const IndexPage = () => {
-  const { header_title, header_subtitle } = useTranslations()
+  const { header_title, header_subtitle, services } = useTranslations()
   const [navbarOpen, setNavbarOpen] = useState(false)
+  const [serviceSectionRef, { isVisible }] = useVisibilityTracking()
+  const serviceCardAnimation = useSpring({
+    opacity: isVisible ? 1 : 0,
+  })
 
   const toggleNavbar = () => {
     setNavbarOpen(navbarOpen => !navbarOpen)
@@ -104,7 +182,7 @@ const IndexPage = () => {
   }
 
   return (
-    <div>
+    <>
       <SEO title="Home" />
       <ParallaxContainer>
         <ParallaxImage imageUrl={parallaxImage}>
@@ -115,7 +193,25 @@ const IndexPage = () => {
           </HeaderText>
         </ParallaxImage>
       </ParallaxContainer>
-    </div>
+      <Layout>
+        <Section>
+          <SectionTitle style={serviceCardAnimation} ref={serviceSectionRef}>
+            {services}
+          </SectionTitle>
+          <ServiceSectionContent>
+            {SERVICES.map(service => (
+              <ServiceCard
+                key={service.id}
+                title={service.title}
+                image={service.image}
+                gotoUrl={service.gotoUrl}
+                description={service.description}
+              />
+            ))}
+          </ServiceSectionContent>
+        </Section>
+      </Layout>
+    </>
   )
 }
 
