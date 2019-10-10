@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from "react"
-import { throttle } from "../utils/utils"
 
 type VisibilityObject = {
   rect: ClientRect | DOMRect | null
@@ -8,32 +7,105 @@ type VisibilityObject = {
 
 type RefCallback = (node: HTMLElement | null) => void
 
-function useVisibilityTracking(): [RefCallback, VisibilityObject] {
+interface VisibilityTrackingProps {
+  onChange?: (...args: any[]) => any
+  partiallyVisible?: boolean
+  minimumTop?: number
+  scrollCheck?: boolean
+  scrollDelay?: number
+  scrollThrottleLimit?: number
+  resizeCheck?: boolean
+  resizeDelay?: number
+  resizeThrottleLimit?: number
+  offset?: {
+    top?: number
+    left?: number
+    bottom?: number
+    right?: number
+  }
+}
+
+function useVisibilityTracking({
+  onChange,
+  partiallyVisible = false,
+  minimumTop = 0,
+  scrollCheck = true,
+  scrollThrottleLimit = 100,
+  resizeCheck = false,
+  resizeThrottleLimit = 100,
+  offset = {},
+}: VisibilityTrackingProps = {}): [RefCallback, VisibilityObject] {
   const [isVisible, setIsVisible] = useState(false)
   const rectRef = useRef<ClientRect | DOMRect | null>(null)
-  const ref = useCallback((node: HTMLElement | null) => {
-    if (node !== null) {
-      rectRef.current = node.getBoundingClientRect()
-      document.addEventListener("scroll", scrollListener)
-    }
-  }, [])
+  const eventListenersRef = useRef<any>(null)
 
-  const scrollListener = useCallback(() => {
-    const rect = rectRef.current
-    if (rect) {
-      console.log(window.innerHeight)
-      console.log(rect.top)
-    }
-  }, [])
+  const checkVisibility = useCallback(() => {}, [])
 
-  useEffect(() => {
-    return () => {
-      document.removeEventListener("scroll", scrollListener)
-    }
-  }, [])
+  const addEventListener = useCallback(
+    (event, throttleLimit) => {
+      if (!eventListenersRef.current) {
+        eventListenersRef.current = {}
+      }
+      const eventListeners = eventListenersRef.current
+      let timeout: number | null
+      const eventListenerFn = () => {
+        if (!timeout) {
+          timeout = setTimeout(
+            visibilityCheckCallback,
+            throttleLimit < 0 ? 0 : throttleLimit
+          )
+        }
+      }
+
+      const visibilityCheckCallback = () => {
+        timeout = null
+        checkVisibility()
+      }
+
+      const eventListenerInfo = {
+        eventListenerFn: eventListenerFn,
+        getTimeout: () => {
+          return timeout
+        },
+      }
+
+      window.addEventListener(event, eventListenerInfo.eventListenerFn)
+      eventListeners[event] = eventListenerInfo
+
+      return () => {
+        if (timeout !== null) {
+          clearTimeout(timeout)
+        }
+      }
+    },
+    [checkVisibility]
+  )
+
+  // use "callback ref" instead of normal useRef
+  // https://reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node
+  const elementCallbackRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (node !== null) {
+        rectRef.current = node.getBoundingClientRect()
+        if (scrollCheck) {
+          addEventListener("scroll", scrollThrottleLimit)
+        }
+        if (resizeCheck) {
+          addEventListener("resize", resizeThrottleLimit)
+        }
+      }
+    },
+    [
+      scrollCheck,
+      resizeCheck,
+      addEventListener,
+      scrollThrottleLimit,
+      resizeThrottleLimit,
+    ]
+  )
 
   const rect = rectRef.current
-  return [ref, { rect, isVisible }]
+  return [elementCallbackRef, { rect, isVisible }]
 }
 
 export default useVisibilityTracking

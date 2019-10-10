@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState } from "react"
 
 import SEO from "../components/SEO"
 import useTranslations from "../components/useTranslation"
@@ -175,10 +175,6 @@ const IndexPage = () => {
 
   const toggleNavbar = () => {
     setNavbarOpen(navbarOpen => !navbarOpen)
-  }
-
-  const closeNavbar = () => {
-    setNavbarOpen(false)
   }
 
   return (
