@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 
 import SEO from "../components/SEO"
 import useTranslations from "../components/useTranslation"
@@ -14,7 +14,7 @@ import eyebrow_image from "../images/eyebrow.png"
 
 import ServiceCard from "../components/ServiceCard"
 import useVisibilityTracking from "../components/useVisibilityTracking"
-import { useSpring } from "react-spring"
+import { useSpring, animated } from "react-spring"
 interface ParallaxProps {
   imageUrl: string
 }
@@ -168,7 +168,14 @@ const SERVICES: Service[] = [
 const IndexPage = () => {
   const { header_title, header_subtitle, services } = useTranslations()
   const [navbarOpen, setNavbarOpen] = useState(false)
-  const [serviceSectionRef, { isVisible }] = useVisibilityTracking()
+  const [
+    serviceSectionRef,
+    { isVisible, percentVisible },
+  ] = useVisibilityTracking({
+    minElementOffset: {
+      bottom: 100,
+    },
+  })
   const serviceCardAnimation = useSpring({
     opacity: isVisible ? 1 : 0,
   })
@@ -176,6 +183,10 @@ const IndexPage = () => {
   const toggleNavbar = () => {
     setNavbarOpen(navbarOpen => !navbarOpen)
   }
+
+  useEffect(() => {
+    console.log(percentVisible)
+  }, [percentVisible])
 
   return (
     <>
@@ -191,18 +202,21 @@ const IndexPage = () => {
       </ParallaxContainer>
       <Layout>
         <Section>
-          <SectionTitle style={serviceCardAnimation} ref={serviceSectionRef}>
-            {services}
-          </SectionTitle>
+          <SectionTitle>{services}</SectionTitle>
           <ServiceSectionContent>
             {SERVICES.map(service => (
-              <ServiceCard
+              <animated.div
                 key={service.id}
-                title={service.title}
-                image={service.image}
-                gotoUrl={service.gotoUrl}
-                description={service.description}
-              />
+                ref={serviceSectionRef}
+                style={serviceCardAnimation}
+              >
+                <ServiceCard
+                  title={service.title}
+                  image={service.image}
+                  gotoUrl={service.gotoUrl}
+                  description={service.description}
+                />
+              </animated.div>
             ))}
           </ServiceSectionContent>
         </Section>
