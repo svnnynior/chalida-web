@@ -122,6 +122,7 @@ const SectionTitle = styled.h3`
 const ServiceSectionContent = styled.div`
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
 `
 
 interface Service {
@@ -168,13 +169,11 @@ const SERVICES: Service[] = [
 const IndexPage = () => {
   const { header_title, header_subtitle, services } = useTranslations()
   const [navbarOpen, setNavbarOpen] = useState(false)
-  const [
-    serviceSectionRef,
-    { isVisible, percentVisible },
-  ] = useVisibilityTracking({
+  const [serviceSectionRef, { isVisible }] = useVisibilityTracking({
     minElementOffset: {
       bottom: 100,
     },
+    partiallyVisible: "bottom",
   })
   const serviceCardAnimation = useSpring({
     opacity: isVisible ? 1 : 0,
@@ -199,13 +198,9 @@ const IndexPage = () => {
       <Layout>
         <Section>
           <SectionTitle>{services}</SectionTitle>
-          <ServiceSectionContent>
+          <ServiceSectionContent ref={serviceSectionRef}>
             {SERVICES.map(service => (
-              <animated.div
-                key={service.id}
-                ref={serviceSectionRef}
-                style={serviceCardAnimation}
-              >
+              <animated.div key={service.id} style={serviceCardAnimation}>
                 <ServiceCard
                   title={service.title}
                   image={service.image}

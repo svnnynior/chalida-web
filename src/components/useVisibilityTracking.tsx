@@ -40,6 +40,7 @@ interface VisibilityTrackingProps {
     isVisible: boolean,
     percentVisible: VisibilityPercent
   ) => any
+  partiallyVisible?: boolean | keyof VisibilityRect
   scrollCheck?: boolean
   scrollDelay?: number
   scrollThrottleLimit?: number
@@ -89,7 +90,8 @@ function getContainmentRect(): VisibilityRect {
 export function checkIsVisible(
   nodeRect: VisibilityRect,
   containmentRect: VisibilityRect,
-  minElementOffset: Offset
+  minElementOffset: Offset,
+  partiallyVisible: boolean | keyof VisibilityRect
 ): boolean {
   const nodeWidth = nodeRect.right - nodeRect.left
   const nodeHeight = nodeRect.bottom - nodeRect.top
@@ -113,14 +115,22 @@ export function checkIsVisible(
     right: partialNodeRect.right <= containmentRect.right,
   }
 
-  const isVisible =
-    hasSize &&
-    visibilityObject.top &&
-    visibilityObject.left &&
-    visibilityObject.bottom &&
-    visibilityObject.right
+  if (partiallyVisible) {
+    if (partiallyVisible === true) {
+      return Object.values(visibilityObject).some(isVisible => isVisible)
+    } else {
+      return visibilityObject[partiallyVisible]
+    }
+  } else {
+    const isVisible =
+      hasSize &&
+      visibilityObject.top &&
+      visibilityObject.left &&
+      visibilityObject.bottom &&
+      visibilityObject.right
 
-  return isVisible
+    return isVisible
+  }
 }
 
 export function computePercentVisible(
@@ -169,13 +179,14 @@ export function computePercentVisible(
 
 function useVisibilityTracking({
   onVisibilityChange,
+  partiallyVisible = false,
   scrollCheck = true,
   scrollThrottleLimit = 250,
   resizeCheck = false,
   resizeThrottleLimit = 250,
   minElementOffset = {},
 }: VisibilityTrackingProps = {}): [RefCallback, VisibilityObject] {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState<boolean>(false)
   const [percentVisible, setPercentVisible] = useState<VisibilityPercent>({
     horizontalPercent: 0,
     verticalPercent: 0,
@@ -190,22 +201,20 @@ function useVisibilityTracking({
         ? nodeRef.current.getBoundingClientRect()
         : null
     if (!rect) return
-
     const nodeRect = getVisibilityRect(rect)
     const containmentRect = getContainmentRect()
     const nextIsVisible = checkIsVisible(
       nodeRect,
       containmentRect,
-      minElementOffset
+      minElementOffset,
+      partiallyVisible
     )
     const percentVisible = computePercentVisible(nodeRect, containmentRect)
 
-    if (isVisible !== nextIsVisible) {
-      setIsVisible(nextIsVisible)
-    }
+    setIsVisible(nextIsVisible)
     setPercentVisible(percentVisible)
     if (onVisibilityChange) onVisibilityChange(nextIsVisible, percentVisible)
-  }, [minElementOffset, isVisible, onVisibilityChange])
+  }, [minElementOffset, onVisibilityChange, partiallyVisible])
 
   const addEventListener = useCallback(
     (event: ObservedEvent, throttleLimit: number) => {
@@ -277,7 +286,6 @@ function useVisibilityTracking({
 
   useEffect(() => {
     return () => {
-      console.log("remove event listeners")
       const eventListners = eventListenersRef.current
       for (const event in eventListners) {
         const eventListenerInfo = eventListners[event as ObservedEvent]
