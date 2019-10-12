@@ -185,7 +185,6 @@ function useVisibilityTracking({
   const eventListenersRef = useRef<EventListeners | null>(null)
 
   const checkVisibility = useCallback(() => {
-    console.log("check visibility")
     const rect =
       nodeRef && nodeRef.current
         ? nodeRef.current.getBoundingClientRect()
@@ -253,6 +252,10 @@ function useVisibilityTracking({
   // https://reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node
   const elementCallbackRef = useCallback(
     (node: HTMLElement | null) => {
+      const eventListeners = eventListenersRef.current
+      if (eventListeners) {
+        return
+      }
       if (node !== null) {
         nodeRef.current = node
         if (scrollCheck) {
@@ -274,6 +277,7 @@ function useVisibilityTracking({
 
   useEffect(() => {
     return () => {
+      console.log("remove event listeners")
       const eventListners = eventListenersRef.current
       for (const event in eventListners) {
         const eventListenerInfo = eventListners[event as ObservedEvent]

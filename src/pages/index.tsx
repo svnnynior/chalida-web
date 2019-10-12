@@ -184,10 +184,6 @@ const IndexPage = () => {
     setNavbarOpen(navbarOpen => !navbarOpen)
   }
 
-  useEffect(() => {
-    console.log(percentVisible)
-  }, [percentVisible])
-
   return (
     <>
       <SEO title="Home" />
