@@ -33,6 +33,7 @@ const query = graphql`
           translations: childTranslationsJson {
             services
             about
+            contact
             header_title
             header_subtitle
             details

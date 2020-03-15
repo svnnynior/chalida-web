@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react"
-
+import React, { useState } from "react"
 import SEO from "../components/SEO"
 import useTranslations from "../components/useTranslation"
 import styled, { keyframes } from "styled-components"
@@ -11,9 +10,10 @@ import Layout from "../components/Layout"
 
 import hair_image from "../images/hair.png"
 import eyebrow_image from "../images/eyebrow.png"
+import cosmetic_image from "../images/bride.png"
 
 import ServiceCard from "../components/ServiceCard"
-import useVisibilityTracking from "../components/useVisibilityTracking"
+import useVisibilityTracking from "react-visibility-tracking-hooks"
 import { useSpring, animated } from "react-spring"
 interface ParallaxProps {
   imageUrl: string
@@ -125,6 +125,22 @@ const ServiceSectionContent = styled.div`
   flex-wrap: wrap;
 `
 
+const ContactSectionContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+`
+
+const MapContainer = styled.div`
+  background-color: #ddd;
+  width: 350px;
+  height: 350px;
+
+  @media ${device.tablet} {
+    width: 400px;
+    height: 400px;
+  }
+`
 interface Service {
   id: number
   title: {
@@ -165,9 +181,22 @@ const SERVICES: Service[] = [
     gotoUrl: "/services",
     image: eyebrow_image,
   },
+  {
+    id: 2,
+    title: {
+      th: "แต่งหน้า",
+      en: "Makeup",
+    },
+    description: {
+      th: "แต่งหน้าเจ้าสาว, รับปริญญา",
+      en: "Wedding, Graduation Ceremony",
+    },
+    gotoUrl: "/services",
+    image: cosmetic_image,
+  },
 ]
 const IndexPage = () => {
-  const { header_title, header_subtitle, services } = useTranslations()
+  const { header_title, header_subtitle, services, contact } = useTranslations()
   const [navbarOpen, setNavbarOpen] = useState(false)
   const [serviceSectionRef, { isVisible }] = useVisibilityTracking({
     minElementOffset: {
@@ -210,6 +239,13 @@ const IndexPage = () => {
               </animated.div>
             ))}
           </ServiceSectionContent>
+        </Section>
+        <Section style={{ borderTop: "1px #eee solid " }}>
+          <SectionTitle>{contact}</SectionTitle>
+          <ContactSectionContent>
+            <MapContainer> Map </MapContainer>
+            <div></div>
+          </ContactSectionContent>
         </Section>
       </Layout>
     </>
